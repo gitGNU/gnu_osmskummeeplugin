@@ -10,6 +10,8 @@ The 2.0 version of the DB strives to collect more information that this.  I
 would like to know more about what the port is connected to (link and remote
 port info) as well as collecting historical data.
 
+Working on the new historical data store.
+
 
 The Node table can stay the same.
 
