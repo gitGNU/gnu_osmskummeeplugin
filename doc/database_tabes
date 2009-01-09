@@ -1,71 +1,47 @@
 Database Design is described in this document.
 
 The database is modeled after the type of data OpenSM is going to provide
-throught the event interface.
+through the event interface.
 
-Devide up the database based on the fabric set up.
+The initial DB was set up to have a single entry of all the port data
+counters and port error counters.
 
-
-DEPRICATED
-This information is all in perl scripts in the scripts directory.  There is no
-need for this information and it will be removed soon.
-
-
-Node table
-==========
-create table nodes (guid bigint(64), name char(64), type int(8));
-
-port error table
-================
-
-create table port_errors (guid bigint(64), port int, symbol_err_cnt bigint(64), link_err_recover bigint(64), link_downed bigint(64), rcv_err bigint(64), rcv_rem_phys_err bigint(64), rcv_switch_relay_err bigint(64), xmit_discards bigint(64), xmit_constraint_err bigint(64), rcv_constraint_err bigint(64), link_integrity bigint(64), buffer_overrun bigint(64), vl15_dropped bigint(64), time_diff_s bigint(64));
-
-port data counter
-=================
-create table port_data_counters (guid bigint(64), port int, xmit_data bigint(64), rcv_data bigint(64), xmit_pkts bigint(64), rcv_pkts bigint(64), unicast_xmit_pkts bigint(64), unicast_rcv_pkts bigint(64), multicast_xmit_pkts bigint(64), multicast_rcv_pkts bigint(64), time_diff_s bigint(64));
-
-port PS counters
-================
-create table port_select_counters (guid bigint(64), port int, xmit_wait bigint(64), time_diff_s bigint(64));
+The 2.0 version of the DB strives to collect more information that this.  I
+would like to know more about what the port is connected to (link and remote
+port info) as well as collecting historical data.
 
 
+The Node table can stay the same.
 
-SET UP the SKUMMEE tables
-=========================
+Table node
+nodeguid, name, type, timestamp
 
-use thresh;
-select * from wopr_vl;
-select max(var) from wopr_vl;
-	(242 was the max+1 in our example)
+I think we need a new table Port.
 
-For the node variables:
-insert into wopr_vl values(<max+1>,0,"ibport1-error_sum","Total errors on port1","IBErr","Total IB errors on port 1",0,2);
-insert into wopr_v (host,var) values(0,<max+1>);
-...
-insert into wopr_v (host,var) values(N,<max+1>);
+Table port
+nodeguid, portnum, portguid, remoteportguid, timestamp
 
 
-For the switch variables:
+   [What happens when ports/nodes leave the fabric?  How do we record this?
+   Should there be an enter/leave marker on the entries?]
 
-insert into wopr_vl values(<max+1>,0,"symbol_err_sum","Total symbol errors on IB switches","IBSwSymbolErr","Total symbol errors on IB switches",0,2);
-insert into wopr_vl values(<max+2>,0,"link_err_sum","Total link errors on IB switches","IBSwLinkErr","Total link errors on IB switches",0,2);
-insert into wopr_vl values(<max+3>,0,"link_downed_sum","Total link downed events on IB switches","IBSwLinkDowned","Total link downed events on IB switches",0,2);
-insert into wopr_vl values(<max+4>,0,"rcv_err_sum","Total Rcv errors on IB switches","IBSwRcvErr","Total Rcv errors on IB switches",0,2);
-insert into wopr_vl values(<max+5>,0,"rcv_rem_phys_err_sum","Total Rcv remote physical errors on IB switches","IBSwRcvRemPhysErr","Total Rcv remote physical errors on IB switches",0,2);
-insert into wopr_vl values(<max+6>,0,"rcv_switch_relay_err_sum","Total Rcv Switch Relay errors on IB switches","IBSwRcvSwRelayErr","Total Rcv Switch Relay errors on IB switches",0,2);
-insert into wopr_vl values(<max+7>,0,"xmit_discards_sum","Total Xmit Discards on IB switches","IBSwXmitDiscards","Total Xmit Discards on IB switches",0,2);
-insert into wopr_vl values(<max+8>,0,"xmit_constraint_err_sum","Total Xmit Constraint errors on IB switches","IBSwXmitConstErr","Total Xmit Constraint errors on IB switches",0,2);
-insert into wopr_vl values(<max+9>,0,"rcv_constraint_err_sum","Total Rcv Constraint errors on IB switches","IBSwRcvConstErr","Total Rcv Constraint errors on IB switches",0,2);
-insert into wopr_vl values(<max+10>,0,"link_integrity_sum","Total Link integrity errors on IB switches","IBSwLinkIntErr","Total Link integrity errors on IB switches",0,2);
-insert into wopr_vl values(<max+11>,0,"buffer_overrun_sum","Total Buffer overrun errors on IB switches","IBSwBufOverrunErr","Total Buffer overrun errors on IB switches",0,2);
-insert into wopr_vl values(<max+12>,0,"vl15_dropped_sum","Total VL15 Dropps on IB switches","IBSwVL15Dropped","Total VL15 Dropps on IB switches",0,2);
 
-3000 is some really unique host number (large works best).
-insert into wopr_n values(3000,7,"0","IB_SwitchErrorTotal","chaos",7,0,0,2,0,0,"0","user1","",65535,10);
+Port information tables based on the collection information.  There will be
+multiple entries in each table for each portguid.  timestamp gives us the
+history of what has happened with the cluster.
 
-insert into wopr_v (host,var) values(3000,<max+1>);
-insert into wopr_v (host,var) values(3000,<max+2>);
-...
-insert into wopr_v (host,var) values(3000,<max+12>);
+Table porterrors
+portguid, ... error counters ..., timestamp
+
+Table portcounters
+portguid, ... counters ..., timestamp
+
+Table portselect
+portguid, ... select counters ..., timestamp
+
+Table portinfo
+portguid, ... port info ..., timestamp
+
+
 
 
