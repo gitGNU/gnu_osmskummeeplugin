@@ -5,7 +5,8 @@ CODE-235483
 
 This file is part of libopensmskummeeplugin, this is an event plugin for the
 Open Subnet Manager to log port counters to the skummee montioring tool.
-For details, see http://www.llnl.gov/linux/.
+For details, see http://www.llnl.gov/linux/
+             or  http://www.nongnu.org/osmskummeeplugin/
 
 libopensmskummeeplugin is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free
@@ -18,8 +19,8 @@ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
 details.
 
 You should have received a copy of the GNU General Public License along with
-libopensmskummeeplugin; if not, write to the Free Software Foundation, Inc., 59
-Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 A. This notice is required to be provided under our contract with the U.S.
 Department of Energy (DOE). This work was produced at the Lawrence Livermore
