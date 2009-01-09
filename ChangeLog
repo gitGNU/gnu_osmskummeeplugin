@@ -1,3 +1,8 @@
+- Thu Jan 08 2009 Ira Weiny <weiny2@llnl.gov>
+
+	* : 1.1.0 tag for reference.
+	* : Updated all license files for submission to savannah.nongnu.org
+
 - Wed Aug 21 2008 Ira Weiny <weiny2@llnl.gov>
 
 	* : Updated to new event plugin interface in master branch
