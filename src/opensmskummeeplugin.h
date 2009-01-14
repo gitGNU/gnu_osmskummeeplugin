@@ -60,7 +60,7 @@ typedef struct _data_entry {
  * Main plugin data structure
  */
 typedef struct _plugin_data {
-	osm_log_t       *osmlog;
+	osm_opensm_t    *osm;
 	/* MYSQL */
 	char            *db_user;
 	char            *db_name;

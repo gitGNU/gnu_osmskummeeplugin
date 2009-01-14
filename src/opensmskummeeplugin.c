@@ -121,7 +121,7 @@ db_write_thread(void *pd)
 	plugin_data_t *plugin_data = (plugin_data_t *)pd;
 	data_entry_t  *data = NULL;
 
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO,
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO,
 			"In DB write thread\n");
 
 	plugin_data->exit_flag = 0;
@@ -150,7 +150,7 @@ db_write_thread(void *pd)
 		data = pull_from_tail(plugin_data);
 
 		if (!data) {
-			plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+			plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 				"plugin_data->tail != NULL but pull returned NULL?");
 			continue;
 		}
@@ -252,10 +252,10 @@ create(struct osm_opensm *osm)
 	if (!(plugin_data = malloc(sizeof(*plugin_data))))
 		return (NULL);
 
-	plugin_data->osmlog = &(osm->log);
+	plugin_data->osm = osm;
 
 	if (!construct_plugin_data(plugin_data)) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR, "Failed to read %s\n", DATABASE_CONF);
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "Failed to read %s\n", DATABASE_CONF);
 		free(plugin_data);
 		return (NULL);
 	}
@@ -267,7 +267,7 @@ create(struct osm_opensm *osm)
 	pthread_mutex_lock(&(plugin_data->sig_lock));
 	if (pthread_create(&(plugin_data->thread), &(th_attr),
               		db_write_thread, (void *)plugin_data)) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_INFO, "Failed to create DB write thread\n");
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "Failed to create DB write thread\n");
 		pthread_attr_destroy(&(th_attr));
 		free_plugin_data(plugin_data);
 		return (NULL);
@@ -279,13 +279,13 @@ create(struct osm_opensm *osm)
 	rc = pthread_cond_timedwait(&(plugin_data->signal), &(plugin_data->sig_lock), &ts);
 	pthread_mutex_unlock(&(plugin_data->sig_lock));
 	if (rc == ETIMEDOUT) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR, "DB write thread failed to initialize\n");
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "DB write thread failed to initialize\n");
 		pthread_join(plugin_data->thread, NULL);
 		free_plugin_data(plugin_data);
 		return (NULL);
 	}
 
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO, "DB write thread started\n");
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "DB write thread started\n");
 
 	return ((void *)plugin_data);
 }
@@ -297,13 +297,13 @@ delete(void *data)
 {
 	plugin_data_t *plugin_data = (plugin_data_t *)data;
 
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO, "destroy called cleaning up...\n");
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "destroy called cleaning up...\n");
 
 	plugin_data->exit_flag = 1;
 	thread_signal(plugin_data);
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO, "Stopping DB write thread...\n");
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "Stopping DB write thread...\n");
 	pthread_join(plugin_data->thread, NULL);
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO, "Closing DB connection...\n");
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "Closing DB connection...\n");
 	mysql_close(&(plugin_data->mysql));
 	free_plugin_data(plugin_data);
 }
@@ -318,7 +318,7 @@ static void report(void *data, osm_epi_event_id_t event_id, void *event_data)
 	data_entry_t *entry = (data_entry_t *)malloc(sizeof *entry);
 
 	if (!entry) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 			"Reporting event \"%d\" : malloc failed : %s\n",
 				event_id, strerror(errno));
 		return;
@@ -341,7 +341,7 @@ static void report(void *data, osm_epi_event_id_t event_id, void *event_data)
 		break;
 	case OSM_EVENT_ID_MAX:
 	default:
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 			"Unknown event reported to plugin\n");
 		free(entry);
 		return;

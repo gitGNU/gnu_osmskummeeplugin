@@ -46,7 +46,7 @@
  * Define MYSQL query macros and functions to make code more readable.
  */
 #define MYSQL_QUERY_FAIL() \
-	plugin_log(plugin_data->osmlog, OSM_LOG_ERROR, "MYSQL Query failed : %s\n", query_str);
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "MYSQL Query failed : %s\n", query_str);
 
 #define QUERY_STR_LEN (1024)
 static char query_str[QUERY_STR_LEN];
@@ -201,7 +201,7 @@ sql_add_port_errors(plugin_data_t *plugin_data, osm_epi_pe_event_t *pe_event)
 		/* must retrieve previous counts to be added to the new counts. */
 
 		if ((num_fields = mysql_num_fields(res)) != 12) {
-			plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+			plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 				"Failed to query port_error table for guid %"PRIuLEAST64", port %d; col ret %d != 12\n",
 				port_id->node_guid, port_id->port_num, num_fields);
 			goto free_res;
@@ -224,7 +224,7 @@ sql_add_port_errors(plugin_data_t *plugin_data, osm_epi_pe_event_t *pe_event)
 		update_port_errors(plugin_data, pe_event);
 	} else {
 		/* more than one result? */
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 			"%llu port_error rows returned for guid %"PRIuLEAST64", port %d\n",
 			mysql_num_rows(res), port_id->node_guid, port_id->port_num);
 	}
@@ -318,7 +318,7 @@ sql_add_data_counters(plugin_data_t *plugin_data, osm_epi_dc_event_t *dc_event)
 		/* must retrieve previous counts to be added to the new counts. */
 
 		if ((num_fields = mysql_num_fields(res)) != 8) {
-			plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+			plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 				"Failed to query port_data_counters table for guid %"PRIuLEAST64", port %d; col ret %d != 8\n",
 				port_id->node_guid, port_id->port_num, num_fields);
 			goto free_res;
@@ -337,7 +337,7 @@ sql_add_data_counters(plugin_data_t *plugin_data, osm_epi_dc_event_t *dc_event)
 		update_port_data_counters(plugin_data, dc_event);
 	} else {
 		/* more than one result? */
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 			"%llu port_data_counters rows returned for guid %"PRIuLEAST64", port %d\n",
 			mysql_num_rows(res), port_id->node_guid, port_id->port_num);
 	}
@@ -404,7 +404,7 @@ sql_add_port_select(plugin_data_t *plugin_data, osm_epi_ps_event_t *ps_event)
 		/* must retrieve previous counts to be added to the new counts. */
 
 		if ((num_fields = mysql_num_fields(res)) != 1) {
-			plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+			plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 				"Failed to query port_select_counters table for guid %"PRIuLEAST64", port %d; col ret %d != 1\n",
 				port_id->node_guid, port_id->port_num, num_fields);
 			goto free_res;
@@ -416,7 +416,7 @@ sql_add_port_select(plugin_data_t *plugin_data, osm_epi_ps_event_t *ps_event)
 		update_port_select(plugin_data, ps_event);
 	} else {
 		/* more than one result? */
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR,
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR,
 			"%llu port_select_counters rows returned for guid %"PRIuLEAST64", port %d\n",
 			mysql_num_rows(res), port_id->node_guid, port_id->port_num);
 	}
@@ -430,13 +430,13 @@ sql_setup_db_conn(plugin_data_t *plugin_data)
 {
 	/* open DB connection */
 	if (!mysql_init(&(plugin_data->mysql))) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR, "Failed to Connect to MySQL\n");
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "Failed to Connect to MySQL\n");
 		return (1);
 	}
 	if (!(plugin_data->conn = mysql_real_connect(&(plugin_data->mysql), NULL,
 			plugin_data->db_user, plugin_data->db_password,
 			plugin_data->db_name, 0, NULL, 0))) {
-		plugin_log(plugin_data->osmlog, OSM_LOG_ERROR, "Failed to open database \"%s\" : %s\n",
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "Failed to open database \"%s\" : %s\n",
 			plugin_data->db_name, mysql_error(&(plugin_data->mysql)));
 		mysql_close(&(plugin_data->mysql));
 		return (1);
@@ -451,7 +451,7 @@ sql_setup_db_conn(plugin_data_t *plugin_data)
 		QUERY(plugin_data, "delete from port_select_counters;");
 	}
 
-	plugin_log(plugin_data->osmlog, OSM_LOG_INFO,
+	plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO,
 		"Opened %s as user %s\n", plugin_data->db_name, plugin_data->db_user);
 	return (0);
 }
