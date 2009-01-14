@@ -7,14 +7,14 @@ if [ "$1" == "" ]; then
    exit 1
 fi
 
+prefix=$1
+libdir=$prefix/lib
+
+if [ ! -d $libdir/mysql ]; then
+   ln -s /usr/lib64/mysql $libdir/mysql
+fi
+
 if [ ! -f Makefile ]; then
-   prefix=$1
-   libdir=$prefix/lib
-
-   if [ ! -d $libdir/mysql ]; then
-      ln -s /usr/lib64/mysql $libdir/mysql
-   fi
-
    ./autogen.sh
    ./configure --prefix=$prefix --libdir=$libdir --enable-genders
 fi
