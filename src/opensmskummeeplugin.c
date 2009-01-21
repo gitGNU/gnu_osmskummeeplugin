@@ -39,7 +39,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 #include <dlfcn.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -126,7 +125,6 @@ db_write_thread(void *pd)
 
 	plugin_data->exit_flag = 0;
 	if (sql_setup_db_conn(plugin_data)) {
-		thread_signal(plugin_data);
 		return (NULL);
 	}
 
@@ -173,6 +171,7 @@ db_write_thread(void *pd)
 
 		free(data);
 	}
+	return (NULL);
 }
 
 /** =========================================================================
@@ -267,7 +266,7 @@ create(struct osm_opensm *osm)
 	pthread_mutex_lock(&(plugin_data->sig_lock));
 	if (pthread_create(&(plugin_data->thread), &(th_attr),
               		db_write_thread, (void *)plugin_data)) {
-		plugin_log(&(plugin_data->osm->log), OSM_LOG_INFO, "Failed to create DB write thread\n");
+		plugin_log(&(plugin_data->osm->log), OSM_LOG_ERROR, "Failed to create DB write thread\n");
 		pthread_attr_destroy(&(th_attr));
 		free_plugin_data(plugin_data);
 		return (NULL);
@@ -275,7 +274,7 @@ create(struct osm_opensm *osm)
 	pthread_attr_destroy(&(th_attr));
 
 	clock_gettime(CLOCK_REALTIME, &ts);
-	ts.tv_sec += 2; /* give 2 sec to start up */
+	ts.tv_sec += 1; /* give 1 sec to start up */
 	rc = pthread_cond_timedwait(&(plugin_data->signal), &(plugin_data->sig_lock), &ts);
 	pthread_mutex_unlock(&(plugin_data->sig_lock));
 	if (rc == ETIMEDOUT) {
